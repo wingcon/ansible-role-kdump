@@ -1,0 +1,56 @@
+---
+- name: set kexec-tools package config
+  debconf:
+    name: "{{ kdump_kexec_package }}"
+    question: "{{ kdump_kexec_config_key }}"
+    value: "{{ kdump_kexec_reboot_handling_enabled }}"
+    vtype: boolean
+  when:
+    - kdump_install | bool
+    - kdump_kexec_package != ""
+
+- name: set kdump-tools package config
+  debconf:
+    name: "{{ kdump_kdump_package }}"
+    question: "{{ kdump_kdump_config_key }}"
+    value: "{{ kdump_kdump_enabled }}"
+    vtype: boolean
+  when:
+    - kdump_install | bool
+    - kdump_kdump_package != ""
+
+- name: install kdump for ubuntu
+  package:
+    name: linux-crashdump
+    state: present
+  when: kdump_install | bool
+
+- name: configure kdump
+  lineinfile:
+    path: "{{ kdump_config_file }}"
+    regexp: '^{{ item.key }}='
+    line: "{{ item.key }}={{ item.value }}"
+  loop: "{{ (kdump_default_config | items2dict(key_name='name', value_name='value')) | combine(kdump_config | items2dict(key_name='name', value_name='value')) | dict2items }}"
+
+- name: configure kdump reserved RAM
+  copy:
+    content: 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT crashkernel={{ kdump_crashkernel_mem }}"'
+    dest: "{{ kdump_grub_config_file }}"
+  notify: update grub
+
+- name: Start kdump Service
+  service:
+    name: "{{ kdump_service }}"
+    state: "{{ kdump_service_state }}"
+    enabled: "{{ kdump_service_enabled }}"
+
+- name: check if kdump is ready
+  command: grep -q crashkernel /proc/cmdline
+  changed_when: false
+  failed_when: false
+  register: kdump_kdump_ready
+
+- name: kdump reboot needed
+  debug:
+    msg: "!! system must be restarted to get kdump ready !!"
+  when: kdump_kdump_ready.rc != 0

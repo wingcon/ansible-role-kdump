@@ -1,0 +1,31 @@
+---
+kdump_install: true
+kdump_enalbed: true
+kdump_config_file: /etc/default/kdump-tools
+kdump_grub_config_file: /etc/default/grub.d/kdump-tools.cfg
+kdump_crashkernel_mem: 512M-:384M
+
+kdump_kexec_package: kexec-tools
+kdump_kexec_config_key: kexec-tools/load_kexec
+kdump_kexec_reboot_handling_enabled: 'true'
+kdump_kdump_package: kdump-tools
+kdump_kdump_config_key: kdump-tools/use_kdump
+kdump_kdump_enabled: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == 1) | ternary('true', 'false') }}"
+
+kdump_service: kdump-tools
+kdump_service_state: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == 1) | ternary('started', 'stopped') }}"
+kdump_service_enabled: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == 1) | ternary('yes', 'no') }}"
+
+kdump_config: {}
+
+kdump_default_config:
+  - name: USE_KDUMP
+    value: "{{ kdump_enalbed | ternary('1', '0') }}"
+  - name: KDUMP_SYSCTL
+    value: "kernel.panic_on_oops=1"
+  - name: KDUMP_KERNEL
+    value: /var/lib/kdump/vmlinuz
+  - name: KDUMP_INITRD
+    value: /var/lib/kdump/initrd.img
+  - name: KDUMP_COREDIR
+    value: "/var/crash"
