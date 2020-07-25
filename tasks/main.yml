@@ -1,5 +1,6 @@
 ---
 - name: set kexec-tools package config
+  become: yes
   debconf:
     name: "{{ kdump_kexec_package }}"
     question: "{{ kdump_kexec_config_key }}"
@@ -10,6 +11,7 @@
     - kdump_kexec_package != ""
 
 - name: set kdump-tools package config
+  become: yes
   debconf:
     name: "{{ kdump_kdump_package }}"
     question: "{{ kdump_kdump_config_key }}"
@@ -20,31 +22,54 @@
     - kdump_kdump_package != ""
 
 - name: install kdump for ubuntu
+  become: yes
   package:
     name: linux-crashdump
     state: present
-  when: kdump_install | bool
+  when:
+    - kdump_install | bool
+    - (ansible_distribution | lower) == 'ubuntu'
+
+- name: install kdump for debain
+  become: yes
+  package:
+    name:
+      - kexec-tools
+      - kdump-tools
+    state: present
+  when:
+    - kdump_install | bool
+    - (ansible_distribution | lower) == 'debian'
 
 - name: configure kdump
+  become: yes
   lineinfile:
     path: "{{ kdump_config_file }}"
     regexp: '^{{ item.key }}='
     line: "{{ item.key }}={{ item.value }}"
   loop: "{{ (kdump_default_config | items2dict(key_name='name', value_name='value')) | combine(kdump_config | items2dict(key_name='name', value_name='value')) | dict2items }}"
 
+- name: Gather the package facts
+  package_facts:
+    manager: auto
+
 - name: configure kdump reserved RAM
+  become: yes
   copy:
     content: 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT crashkernel={{ kdump_crashkernel_mem }}"'
     dest: "{{ kdump_grub_config_file }}"
   notify: update grub
+  when: "'grub-pc' in ansible_facts.packages or 'grub-efi' in ansible_facts.packages"
 
 - name: Start kdump Service
+  become: yes
   service:
     name: "{{ kdump_service }}"
     state: "{{ kdump_service_state }}"
     enabled: "{{ kdump_service_enabled }}"
 
 - name: check if kdump is ready
+  become: yes
   command: grep -q crashkernel /proc/cmdline
   changed_when: false
   failed_when: false

@@ -16,7 +16,7 @@ kdump_service: kdump-tools
 kdump_service_state: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == 1) | ternary('started', 'stopped') }}"
 kdump_service_enabled: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == 1) | ternary('yes', 'no') }}"
 
-kdump_config: {}
+kdump_config: "{{ kdump_default_config }}"
 
 kdump_default_config:
   - name: USE_KDUMP
