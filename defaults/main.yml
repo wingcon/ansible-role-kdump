@@ -1,6 +1,6 @@
 ---
 kdump_install: true
-kdump_enalbed: true
+kdump_enabled: true
 kdump_config_file: /etc/default/kdump-tools
 kdump_grub_config_file: /etc/default/grub.d/kdump-tools.cfg
 kdump_crashkernel_mem: 512M-:384M
@@ -20,7 +20,7 @@ kdump_config: "{{ kdump_default_config }}"
 
 kdump_default_config:
   - name: USE_KDUMP
-    value: "{{ kdump_enalbed | ternary('1', '0') }}"
+    value: "{{ kdump_enabled | ternary('1', '0') }}"
   - name: KDUMP_SYSCTL
     value: "kernel.panic_on_oops=1"
   - name: KDUMP_KERNEL
