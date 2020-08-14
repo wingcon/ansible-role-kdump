@@ -10,11 +10,11 @@ kdump_kexec_config_key: kexec-tools/load_kexec
 kdump_kexec_reboot_handling_enabled: 'true'
 kdump_kdump_package: kdump-tools
 kdump_kdump_config_key: kdump-tools/use_kdump
-kdump_kdump_enabled: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == 1) | ternary('true', 'false') }}"
+kdump_kdump_enabled: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == '1') | ternary('true', 'false') }}"
 
 kdump_service: kdump-tools
-kdump_service_state: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == 1) | ternary('started', 'stopped') }}"
-kdump_service_enabled: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == 1) | ternary('yes', 'no') }}"
+kdump_service_state: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == '1') | ternary('started', 'stopped') }}"
+kdump_service_enabled: "{{ ((kdump_config |  items2dict(key_name='name', value_name='value')).USE_KDUMP == '1') | ternary('yes', 'no') }}"
 
 kdump_config: "{{ kdump_default_config }}"
 
