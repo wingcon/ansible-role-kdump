@@ -59,7 +59,9 @@
     content: 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT crashkernel={{ kdump_crashkernel_mem }}"'
     dest: "{{ kdump_grub_config_file }}"
   notify: update grub
-  when: "'grub-pc' in ansible_facts.packages or 'grub-efi' in ansible_facts.packages"
+  when:
+    - kdump_enabled | bool
+    - "'grub-pc' in ansible_facts.packages or 'grub-efi' in ansible_facts.packages"
 
 - name: Start kdump Service
   become: yes
